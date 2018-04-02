@@ -1,7 +1,7 @@
 """Functions for downloading and reading MNIST data."""
 import gzip
 import os
-import urllib
+import urllib.request
 import numpy
 SOURCE_URL = 'http://yann.lecun.com/exdb/mnist/'
 
@@ -12,20 +12,20 @@ def maybe_download(filename, work_directory):
         os.mkdir(work_directory)
     filepath = os.path.join(work_directory, filename)
     if not os.path.exists(filepath):
-        filepath, _ = urllib.urlretrieve(SOURCE_URL + filename, filepath)
+        filepath, _ = urllib.request.urlretrieve(SOURCE_URL + filename, filepath)
         statinfo = os.stat(filepath)
-        print 'Succesfully downloaded', filename, statinfo.st_size, 'bytes.'
+        print ('Succesfully downloaded', filename, statinfo.st_size, 'bytes.')
     return filepath
 
 
 def _read32(bytestream):
     dt = numpy.dtype(numpy.uint32).newbyteorder('>')
-    return numpy.frombuffer(bytestream.read(4), dtype=dt)
+    return numpy.asscalar(numpy.frombuffer(bytestream.read(4), dtype=dt))
 
 
 def extract_images(filename):
     """Extract the images into a 4D uint8 numpy array [index, y, x, depth]."""
-    print 'Extracting', filename
+    print ('Extracting', filename)
     with gzip.open(filename) as bytestream:
         magic = _read32(bytestream)
         if magic != 2051:
@@ -52,7 +52,7 @@ def dense_to_one_hot(labels_dense, num_classes=10):
 
 def extract_labels(filename, one_hot=False):
     """Extract the labels into a 1D uint8 numpy array [index]."""
-    print 'Extracting', filename
+    print ('Extracting', filename)
     with gzip.open(filename) as bytestream:
         magic = _read32(bytestream)
         if magic != 2049:
@@ -80,7 +80,7 @@ class DataSet(object):
             # to [num examples, rows*columns] (assuming depth == 1)
             assert images.shape[3] == 1
             images = images.reshape(images.shape[0],
-                                    images.shape[1] * images.shape[2])
+                                    images.shape[1] * images.shape[2]*images.shape[3])
             # Convert from [0, 255] -> [0.0, 1.0].
             images = images.astype(numpy.float32)
             images = numpy.multiply(images, 1.0 / 255.0)
@@ -108,10 +108,10 @@ class DataSet(object):
     def next_batch(self, batch_size, fake_data=False):
         """Return the next `batch_size` examples from this data set."""
         if fake_data:
-            fake_image = [1.0 for _ in xrange(784)]
+            fake_image = [1.0 for _ in range(784)]
             fake_label = 0
-            return [fake_image for _ in xrange(batch_size)], [
-                fake_label for _ in xrange(batch_size)]
+            return [fake_image for _ in range(batch_size)], [
+                fake_label for _ in range(batch_size)]
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
         if self._index_in_epoch > self._num_examples:

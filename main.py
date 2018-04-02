@@ -21,6 +21,7 @@ class LatentAttention():
         z_mean, z_stddev = self.recognition(image_matrix)
         samples = tf.random_normal([self.batchsize,self.n_z],0,1,dtype=tf.float32)
         guessed_z = z_mean + (z_stddev * samples)
+        print("####this is Z:", guessed_z)
 
         self.generated_images = self.generation(guessed_z)
         generated_flat = tf.reshape(self.generated_images, [self.batchsize, 28*28])
@@ -69,7 +70,7 @@ class LatentAttention():
                     _, gen_loss, lat_loss = sess.run((self.optimizer, self.generation_loss, self.latent_loss), feed_dict={self.images: batch})
                     # dumb hack to print cost every epoch
                     if idx % (self.n_samples - 3) == 0:
-                        print "epoch %d: genloss %f latloss %f" % (epoch, np.mean(gen_loss), np.mean(lat_loss))
+                        print ("epoch %d: genloss %f latloss %f" % (epoch, np.mean(gen_loss), np.mean(lat_loss)))
                         saver.save(sess, os.getcwd()+"/training/train",global_step=epoch)
                         generated_test = sess.run(self.generated_images, feed_dict={self.images: visualization})
                         generated_test = generated_test.reshape(self.batchsize,28,28)
