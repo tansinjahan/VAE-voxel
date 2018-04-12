@@ -3,6 +3,7 @@ import numpy as np
 import input_data
 import matplotlib.pyplot as plt
 import os
+#import shape_tranformation
 from scipy.misc import imsave as ims
 from utils import *
 from ops import *
@@ -18,10 +19,10 @@ class LatentAttention():
 
         self.images = tf.placeholder(tf.float32, [None, 784])
         image_matrix = tf.reshape(self.images,[-1, 28, 28, 1])
+        #image_matrix = shape_tranformation.image_matrix
         z_mean, z_stddev = self.recognition(image_matrix)
         samples = tf.random_normal([self.batchsize,self.n_z],0,1,dtype=tf.float32)
         guessed_z = z_mean + (z_stddev * samples)
-        print("####this is Z:", guessed_z)
 
         self.generated_images = self.generation(guessed_z)
         generated_flat = tf.reshape(self.generated_images, [self.batchsize, 28*28])
@@ -35,6 +36,8 @@ class LatentAttention():
 
     # encoder
     def recognition(self, input_images):
+        with tf.Session() as sess:
+            print("This is rank of image ", tf.rank(input_images))
         with tf.variable_scope("recognition"):
             h1 = lrelu(conv2d(input_images, 1, 16, "d_h1")) # 28x28x1 -> 14x14x16
             h2 = lrelu(conv2d(h1, 16, 32, "d_h2")) # 14x14x16 -> 7x7x32
@@ -42,6 +45,12 @@ class LatentAttention():
 
             w_mean = dense(h2_flat, 7*7*32, self.n_z, "w_mean")
             w_stddev = dense(h2_flat, 7*7*32, self.n_z, "w_stddev")
+
+        with tf.Session() as sess:
+            print("This is rank of convolution2D",tf.rank(h1),tf.rank(h2))
+        with tf.Session() as sess:
+            print("This is rank of Z tensor", tf.rank(w_mean))
+            print ("This is Z ", w_mean, w_stddev)
 
         return w_mean, w_stddev
 

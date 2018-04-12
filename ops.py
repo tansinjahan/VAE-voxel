@@ -82,3 +82,10 @@ def dense(x, inputFeatures, outputFeatures, scope=None, with_w=False):
             return tf.matmul(x, matrix) + bias, matrix, bias
         else:
             return tf.matmul(x, matrix) + bias
+
+def conv3d(x, inputFeatures, outputFeatures, name):
+    with tf.variable_scope(name):
+        w = tf.get_variable("w",[5,5,5,inputFeatures, outputFeatures], initializer=tf.truncated_normal_initializer(stddev=0.02))
+        b = tf.get_variable("b",[outputFeatures], initializer=tf.constant_initializer(0.0))
+        conv = tf.nn.conv3d(x, w, strides=[1,2,2,2,1], padding="SAME") + b
+        return conv
