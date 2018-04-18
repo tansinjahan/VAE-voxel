@@ -6,9 +6,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 class shapeZVector():
 
-    def __init__(self):
+    def __init__(self,v):
 
-        v = np.loadtxt('MyTestFile1.txt')
         image_matrix1 = np.reshape(v, (16, 16, 16)).astype(np.float32)
         self.volume = image_matrix1
         z,x,y = image_matrix1.nonzero()
@@ -17,48 +16,25 @@ class shapeZVector():
         ax.scatter(x, y, -z, zdir='z', c='red')
         plt.savefig("demo.png")
 
-        data_tf = tf.convert_to_tensor(image_matrix1, np.float32)
-
-        sess = tf.InteractiveSession()
-        #print(data_tf.eval())
-        #print(tf.shape(data_tf))
-        #print(tf.rank(data_tf))
-
-
-        images = tf.placeholder(tf.float32, shape =(16,16,16), name='images')
-        dataset = tf.data.Dataset.from_tensor_slices((images))
-        iterator = dataset.make_initializable_iterator()
-        #image_matrix1 = np.reshape(image_matrix1, (1,4096)).astype(np.float32)
-        sess.run(iterator.initializer, feed_dict={images: image_matrix1})
-
-        image_matrix = tf.reshape(images, [-1, 16, 16, 16,1])
-        sess.close()
         self.batchsize = 1
         self.n_z = 20
-        '''image_matrix = np.reshape(v, (16, 16, 16)).astype(np.float32)
-        print(image_matrix.shape)
-        sess = tf.InteractiveSession()
-        test = tf.constant(image_matrix)
-        sess.run(test)
-        sess.close()
-        print(image_matrix[:, :, 6])
-        print(image_matrix[:, :, 4])
-        print(image_matrix[:, :, 15])
-        print(image_matrix[:, :, 14])'''
 
-        z_mean, z_stddev = self.recognition(image_matrix)
+        tens = tf.constant(image_matrix1)
+        mean, std = self.recognition(tf.reshape(tens, shape=[-1, 16, 16, 16, 1]))
+
         samples = tf.random_normal([self.batchsize, self.n_z], 0, 1, dtype=tf.float32)
-        guessed_z = z_mean + (z_stddev * samples)
-
-        some_test = tf.constant(
-            np.random.normal(loc=0.0, scale=1.0, size=(2, 2)).astype(np.float32))
+        gussed_z = tf.add(mean, tf.multiply(std, samples))
 
         with tf.Session() as sess:
-            sess.run(tf.initialize_all_variables())
-            print("This is rank of Z tensor", tf.rank(guessed_z))
-            print("This is Z ", guessed_z)
-            print(type(guessed_z))
-            print(tf.Variable(guessed_z).eval())
+            sess.run(tf.global_variables_initializer())
+            print(type(gussed_z))  # tensorflow.python.framework.ops.Tensor
+
+            npArrr = sess.run(gussed_z)
+            print(type(npArrr))  # numpy.ndarray
+            print(npArrr)
+            print("This is the shape of Z",npArrr.shape)
+
+        return gussed_z
 
     # encoder
     def recognition(self, input_images):
@@ -72,12 +48,13 @@ class shapeZVector():
 
             return w_mean, w_stddev
 
-'''data = np.asarray([[1,2,3],[4,5,6]])
-print("This is shape of data", data)
-n = tf.convert_to_tensor(data,np.float32)
-sess = tf.InteractiveSession()
-print(n.eval())
-print(tf.shape(n))
-print(tf.rank(n))
-sess.close()'''
-model = shapeZVector()
+def loadfile():
+    temp = np.array([])
+    for i in range(1, 11):
+        v = np.loadtxt('MyTestFile' + str(i) + '.txt')
+        model = shapeZVector(v)
+        temp = np.append(temp,model)
+    return temp
+
+output = loadfile()
+print("This is the Z vector for 10 shape", output)
