@@ -20,15 +20,15 @@ class shapeZVector():
         data_tf = tf.convert_to_tensor(image_matrix1, np.float32)
 
         sess = tf.InteractiveSession()
-        print(data_tf.eval())
-        print(tf.shape(data_tf))
-        print(tf.rank(data_tf))
+        #print(data_tf.eval())
+        #print(tf.shape(data_tf))
+        #print(tf.rank(data_tf))
 
 
-        images = tf.placeholder(tf.float32, [None,4096])
+        images = tf.placeholder(tf.float32, shape =(16,16,16), name='images')
         dataset = tf.data.Dataset.from_tensor_slices((images))
         iterator = dataset.make_initializable_iterator()
-        image_matrix1 = np.reshape(image_matrix1, (1,4096)).astype(np.float32)
+        #image_matrix1 = np.reshape(image_matrix1, (1,4096)).astype(np.float32)
         sess.run(iterator.initializer, feed_dict={images: image_matrix1})
 
         image_matrix = tf.reshape(images, [-1, 16, 16, 16,1])
@@ -58,7 +58,7 @@ class shapeZVector():
             print("This is rank of Z tensor", tf.rank(guessed_z))
             print("This is Z ", guessed_z)
             print(type(guessed_z))
-            guessed_z.eval(session = sess)
+            print(tf.Variable(guessed_z).eval())
 
     # encoder
     def recognition(self, input_images):
@@ -72,12 +72,12 @@ class shapeZVector():
 
             return w_mean, w_stddev
 
-data = np.asarray([[1,2,3],[4,5,6]])
+'''data = np.asarray([[1,2,3],[4,5,6]])
 print("This is shape of data", data)
 n = tf.convert_to_tensor(data,np.float32)
 sess = tf.InteractiveSession()
 print(n.eval())
 print(tf.shape(n))
 print(tf.rank(n))
-sess.close()
+sess.close()'''
 model = shapeZVector()
