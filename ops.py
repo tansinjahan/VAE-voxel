@@ -73,7 +73,7 @@ def lrelu(x, leak=0.2, name="lrelu"):
         f2 = 0.5 * (1 - leak)
         return f1 * x + f2 * abs(x)
 
-# fully-conected layer
+# fully-connected layer
 def dense(x, inputFeatures, outputFeatures, scope=None, with_w=False):
     with tf.variable_scope(scope or "Linear"):
         matrix = tf.get_variable("Matrix", [inputFeatures, outputFeatures], tf.float32, tf.random_normal_initializer(stddev=0.02))
