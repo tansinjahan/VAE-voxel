@@ -5,36 +5,28 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 class shapeZVector():
-
     def __init__(self,v):
-
         image_matrix1 = np.reshape(v, (16, 16, 16)).astype(np.float32)
         self.volume = image_matrix1
-        z,x,y = image_matrix1.nonzero()
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(x, y, -z, zdir='z', c='red')
-        plt.savefig("demo.png")
-
         self.batchsize = 1
         self.n_z = 20
 
         tens = tf.constant(image_matrix1)
         mean, std = self.recognition(tf.reshape(tens, shape=[-1, 16, 16, 16, 1]))
-
+        global final_array
         samples = tf.random_normal([self.batchsize, self.n_z], 0, 1, dtype=tf.float32)
         gussed_z = tf.add(mean, tf.multiply(std, samples))
 
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
             print(type(gussed_z))  # tensorflow.python.framework.ops.Tensor
-
             npArrr = sess.run(gussed_z)
             print(type(npArrr))  # numpy.ndarray
             print(npArrr)
             print("This is the shape of Z",npArrr.shape)
+            final_array = np.append(final_array, npArrr)
 
-        return gussed_z
+        tf.reset_default_graph()
 
     # encoder
     def recognition(self, input_images):
@@ -48,13 +40,21 @@ class shapeZVector():
 
             return w_mean, w_stddev
 
+def showShapeVolume(v,i):
+        image_matrix1 = np.reshape(v, (16, 16, 16)).astype(np.float32)
+        z, x, y = image_matrix1.nonzero()
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(x, y, -z, zdir='z', c='red')
+        plt.savefig('demo' + str(i) + '.png')
+
 def loadfile():
-    temp = np.array([])
     for i in range(1, 11):
         v = np.loadtxt('MyTestFile' + str(i) + '.txt')
-        model = shapeZVector(v)
-        temp = np.append(temp,model)
-    return temp
+        showShapeVolume(v,i)
+        shapeZVector(v)
+    v = final_array.reshape(10,20)
+    print("This is the Z vector for 10 shape", v)
 
-output = loadfile()
-print("This is the Z vector for 10 shape", output)
+final_array = np.array([])
+loadfile()
