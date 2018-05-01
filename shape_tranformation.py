@@ -20,6 +20,12 @@ class shapeZVector():
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
             print(type(gussed_z))  # tensorflow.python.framework.ops.Tensor
+
+            meanArr =sess.run(mean)
+            print("this is type of mean", type(meanArr),meanArr)
+            stdArr = sess.run(std)
+            print("this is type of Standard Deviation", type(stdArr), stdArr)
+
             npArrr = sess.run(gussed_z)
             print(type(npArrr))  # numpy.ndarray
             print(npArrr)
@@ -55,6 +61,22 @@ def loadfile():
         shapeZVector(v)
     v = final_array.reshape(10,20)
     print("This is the Z vector for 10 shape", v)
+
+    result = buildEucledeanDistanceMat(v)
+    print("This is eucledean distance matrix", result)
+
+def buildEucledeanDistanceMat(inp_mat):
+    '''
+    Build and return a 10x10 matrix with eucledean distance matrix for shapes
+    :param inp_mat: Input 10x20 matrix for 10 shapes
+    :return: a 10x10 matrix with eucledean distance matrix
+    '''
+    mat = np.zeros((10, 10))
+    for i, val_i in enumerate(inp_mat):
+        for j, val_j in enumerate(inp_mat):
+            mat[i][j] = np.linalg.norm(val_i - val_j)
+
+    return mat
 
 final_array = np.array([])
 loadfile()
